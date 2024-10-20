@@ -1,0 +1,50 @@
+services:
+  db: 
+    image: postgres:13
+    restart: always
+    environment: 
+      - POSTGRES_USER=postgres 
+      - POSTGRES_PASSWORD=postgres
+      - POSTGRES_DB=postgres
+    networks:
+      - app-network
+    container_name: postgres_new
+    ports:
+      - "5433:5432"
+
+  node_project:
+    build: 
+     context: .
+     dockerfile: Dockerfile
+    container_name: node_project
+    restart: always
+    ports:
+      - "3001:3001"
+    environment:
+      POSTGRES_HOST: db
+      POSTGRES_PORT: 5432
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: postgres
+      POSTGRES_DB: postgres
+      REDIS_HOST: redis
+      REDIS_PORT: 6379
+    networks:
+      - app-network
+    depends_on: 
+      - db
+      - redis
+    volumes:
+      - ./src:/app/src
+
+  redis:
+    image: redis:alpine
+    container_name: redis
+    restart: always
+    ports: 
+      - "6379:6379"
+    networks: 
+      - app-network
+  
+networks:
+  app-network:
+    driver: bridge
